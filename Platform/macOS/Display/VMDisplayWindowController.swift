@@ -68,6 +68,8 @@ class VMDisplayWindowController: NSWindowController, UTMVirtualMachineDelegate {
     private var preventIdleSleepAssertion: IOPMAssertionID?
     private var hasSaveSnapshotFailed: Bool = false
     private var isFinalizing: Bool = false
+    
+    private var notchedFullscreen: Bool = false
 
     @Setting("PreventIdleSleep") private var isPreventIdleSleep: Bool = false
     @Setting("NoQuitConfirmation") private var isNoQuitConfirmation: Bool = false
@@ -108,6 +110,9 @@ class VMDisplayWindowController: NSWindowController, UTMVirtualMachineDelegate {
                 self.vm.requestVmDeleteState()
             }
             self.vm.requestVmStop(force: isKill)
+            if self.notchedFullscreen {
+                self.resetNotchedFullscreen()
+            }
         }
     }
 
@@ -481,6 +486,35 @@ extension VMDisplayWindowController: NSWindowDelegate {
     }
 }
 
+// MARK: Notched Fullscreen
+
+extension VMDisplayWindowController {
+    
+    func setNotchedFullscreen() {
+        /*if let window = self.window {
+            window.styleMask = [.borderless, .fullSizeContentView]
+        }*/
+        NSApp.presentationOptions = [.hideMenuBar, .disableAppleMenu, .hideDock]
+        notchedFullscreen = true
+    }
+    
+    func resetNotchedFullscreen() {
+        /*if let window = self.window {
+            window.styleMask = []
+        }*/
+        NSApp.presentationOptions = []
+        notchedFullscreen = false
+    }
+    
+    func windowWillEnterFullScreen(_ notification: Notification) {
+        setNotchedFullscreen()
+    }
+    
+    func windowWillExitFullScreen(_ notification: Notification) {
+        resetNotchedFullscreen()
+    }
+    
+}
 // MARK: - Toolbar
 
 extension VMDisplayWindowController: NSToolbarItemValidation {
